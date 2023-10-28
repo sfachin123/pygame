@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
 Created on Mon Oct 16 14:15:23 2023
 
@@ -33,8 +33,9 @@ SCREEN_HEIGHT = 700
 SPEED_DROP = 50
 SCORE = 0
 MAX_LEVEL=3
-MAX_SCORE=5
-SCORE_STEP=5
+ALIEN_MAX_NO=5
+ALIEN_STEP=5
+ALIEN_COUNTER=0
 LEVEL=1
 
 #User event for missile firing: only one missile per sec at most
@@ -53,7 +54,9 @@ game_over = pygame.image.load(".//Data//GameOver.png")
 game_over = pygame.transform.scale(game_over, (SCREEN_WIDTH, SCREEN_HEIGHT))
 #font.render("Game Over", True, BLACK)
 level_over = font.render("Level Completed!", True, BLACK)
-game_over_win = pygame.image.load(".//Data//LevelUp.png")
+level_up = pygame.image.load(".//Data//LevelUp.png")
+level_up = pygame.transform.scale(level_up, (SCREEN_WIDTH, SCREEN_HEIGHT))
+game_over_win = pygame.image.load(".//Data//YouWin.png")
 game_over_win = pygame.transform.scale(game_over_win, (SCREEN_WIDTH, SCREEN_HEIGHT))
  
 #Create a white screen 
@@ -154,7 +157,8 @@ while True:
     DISPLAYSURF.blit(background, (0,0))
     
     for event in pygame.event.get():
-        if event.type == ALIEN_SPAWNING:
+        if event.type == ALIEN_SPAWNING and ALIEN_COUNTER < ALIEN_MAX_NO:
+            ALIEN_COUNTER+=1
             A = Alien()
             all_sprites.add(A)
             all_aliens.add(A)    
@@ -179,38 +183,39 @@ while True:
         DISPLAYSURF.blit(deadalien.imagedone,deadalien.rect.center)
         pygame.display.update()        
         pygame.mixer.Sound('.//Data//retro_explosion.wav').play()
-        time.sleep(0.2)
+        time.sleep(0.1)
         SCORE +=1
-        if SCORE > MAX_SCORE:
-            DISPLAYSURF.fill(GREEN)
-            DISPLAYSURF.blit(level_over, (30,250))
-        
-            pygame.display.update()
+        #check if level is cleared
+        if len(all_aliens.sprites())==0 :
             #start new level
             LEVEL+=1
-            SCORE=0
-            #need more kills to clear next level
-            MAX_SCORE += SCORE_STEP   
-            for entity in all_aliens:
-                  entity.kill()
-            #TO DO: change background
-            time.sleep(5)
-            
+                   
             if LEVEL>MAX_LEVEL:
                 DISPLAYSURF.fill(WHITE)
                 DISPLAYSURF.blit(game_over_win, (0,0))
                 pygame.display.update()
                 pygame.mixer.Sound('.//Data//jingle_win.wav').play()
                 time.sleep(1)
-               
-                the_end()                
+                the_end()       
+                
+            #need more kills to clear next level
+            ALIEN_MAX_NO += ALIEN_STEP 
+            ALIEN_COUNTER=0
+            #for entity in all_aliens:
+            #      entity.kill()
+
+            DISPLAYSURF.fill(GREEN)
+            DISPLAYSURF.blit(level_up, (0,0))
+            pygame.display.update()
+            time.sleep(5)
+              
         
     for missile in all_missiles:
         if missile.rect.top < 0:
             all_missiles.remove(missile)
             missile.kill()
             
-    #Detect if Alien lands and it's game over!
+    #Detect if Alien hits spaceship, and it's game over!
     if pygame.sprite.spritecollideany(P1, all_aliens):
           pygame.mixer.Sound('.//Data//gameover.wav').play()
           time.sleep(1)
