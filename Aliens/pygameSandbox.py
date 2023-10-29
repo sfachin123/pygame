@@ -38,14 +38,17 @@ ALIEN_STEP=5
 ALIEN_COUNTER=0
 LEVEL=1
 
+#USER EVENTS
 #User event for missile firing: only one missile per sec at most
-MISSILE_LAUNCH_OK = pygame.USEREVENT + 2
+MISSILE_LAUNCH_OK = pygame.USEREVENT + 1
 pygame.time.set_timer(MISSILE_LAUNCH_OK, 1000)
 CANFIRE=False
 #Adding a new User event for creating Aliens
-ALIEN_SPAWNING = pygame.USEREVENT + 1
+ALIEN_SPAWNING = pygame.USEREVENT + 2
 pygame.time.set_timer(ALIEN_SPAWNING, 2000)
-
+#alien ship shooting
+ALIEN_SHOOTING = pygame.USEREVENT+3
+pygame.time.set_timer(ALIEN_SPAWNING, 500)
  
 #Setting up Fonts
 font = pygame.font.SysFont("Verdana", 60)
@@ -121,11 +124,12 @@ class Missile(pygame.sprite.Sprite):
     def move(self):
         self.rect.move_ip(0, -5)
 
+    
 class Alien(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         #alien
-        rawimage = pygame.image.load(".//Data/ufo.png")
+        rawimage = pygame.image.load(".//Data/alien2.png")
         self.image = pygame.transform.scale(rawimage, (50, 50))
         self.rect = self.image.get_rect()
         self.rect.center = (random.randint(30, SCREEN_WIDTH-30), self.rect.height) 
@@ -138,8 +142,29 @@ class Alien(pygame.sprite.Sprite):
         if self.rect.right > SCREEN_WIDTH:
             self.rect.left = 0
             self.rect.center = (0,self.rect.centery+SPEED_DROP)
+
+class AlienShip(Alien):
+    def __init__(self):
+        super().__init__()
+        #alien
+        rawimage = pygame.image.load(".//Data/ufo.png")
+        self.image = pygame.transform.scale(rawimage, (50, 50))
     
-    
+    def fire(self):
+        b = AlienBomb(self)
+        
+
+class AlienBomb(pygame.sprite.Sprite):
+     def __init__(self,alienship):
+         super().__init__()
+         rawimage = pygame.image.load(".//Data/missile.png")
+         self.image = pygame.transform.scale(rawimage, (30, 30))
+         self.rect = self.image.get_rect()
+         self.rect.center = (alienship.rect.centerx,  SCREEN_HEIGHT-alienship.rect.height)
+     
+     def move(self):
+         self.rect.move_ip(0, 5)
+         
 #Setting up Player        
 P1 = Player()
 all_sprites.add(P1)
@@ -159,7 +184,9 @@ while True:
     for event in pygame.event.get():
         if event.type == ALIEN_SPAWNING and ALIEN_COUNTER < ALIEN_MAX_NO:
             ALIEN_COUNTER+=1
-            A = Alien()
+            #create alien ships with increasing probability as level increases
+            rnd = random.uniform(0,10)
+            A = AlienShip() if rnd<LEVEL else Alien()
             all_sprites.add(A)
             all_aliens.add(A)    
         
@@ -227,7 +254,9 @@ while True:
           the_end()   
     
     scores = font_small.render("KILLS: " + str(SCORE), True, RED)
+    level = font_small.render("LEVEL: " + str(LEVEL), True, RED)
     DISPLAYSURF.blit(scores, (10,10))
+    DISPLAYSURF.blit(level, (150,10))
         
     pygame.display.update()
     FramePerSec.tick(FPS)
