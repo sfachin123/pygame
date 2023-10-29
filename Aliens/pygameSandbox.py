@@ -48,7 +48,7 @@ ALIEN_SPAWNING = pygame.USEREVENT + 2
 pygame.time.set_timer(ALIEN_SPAWNING, 2000)
 #alien ship shooting
 ALIEN_SHOOTING = pygame.USEREVENT+3
-pygame.time.set_timer(ALIEN_SPAWNING, 500)
+pygame.time.set_timer(ALIEN_SHOOTING, 500)
  
 #Setting up Fonts
 font = pygame.font.SysFont("Verdana", 60)
@@ -79,6 +79,8 @@ pygame.display.set_icon(icon)
 all_sprites = pygame.sprite.Group()
 all_missiles = pygame.sprite.Group()
 all_aliens = pygame.sprite.Group()
+all_alien_ships = pygame.sprite.Group()
+all_alien_bombs =pygame.sprite.Group()
 
 class Player(pygame.sprite.Sprite):   
     def __init__(self):
@@ -149,21 +151,24 @@ class AlienShip(Alien):
         #alien
         rawimage = pygame.image.load(".//Data/ufo.png")
         self.image = pygame.transform.scale(rawimage, (50, 50))
+        
     
     def fire(self):
-        b = AlienBomb(self)
+        b=AlienBomb(self)
+        all_sprites.add(b)
+        all_alien_bombs.add(b)
         
-
 class AlienBomb(pygame.sprite.Sprite):
      def __init__(self,alienship):
          super().__init__()
          rawimage = pygame.image.load(".//Data/missile.png")
          self.image = pygame.transform.scale(rawimage, (30, 30))
          self.rect = self.image.get_rect()
-         self.rect.center = (alienship.rect.centerx,  SCREEN_HEIGHT-alienship.rect.height)
+         self.rect.center = (alienship.rect.centerx,  alienship.rect.centery)
      
      def move(self):
          self.rect.move_ip(0, 5)
+         
          
 #Setting up Player        
 P1 = Player()
@@ -186,13 +191,22 @@ while True:
             ALIEN_COUNTER+=1
             #create alien ships with increasing probability as level increases
             rnd = random.uniform(0,10)
-            A = AlienShip() if rnd<LEVEL else Alien()
+            #A = AlienShip() if rnd<LEVEL else Alien()
+            if rnd<LEVEL:
+                A = AlienShip() 
+                all_alien_ships.add(A)
+            else:
+                A=Alien()
             all_sprites.add(A)
             all_aliens.add(A)    
         
         if event.type == MISSILE_LAUNCH_OK:
             CANFIRE=True
         
+        if event.type == ALIEN_SHOOTING:
+            for ship in all_alien_ships:
+                ship.fire()
+                
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
@@ -238,12 +252,13 @@ while True:
               
         
     for missile in all_missiles:
-        if missile.rect.top < 0:
+        if missile.rect.top < 0: 
             all_missiles.remove(missile)
             missile.kill()
             
-    #Detect if Alien hits spaceship, and it's game over!
-    if pygame.sprite.spritecollideany(P1, all_aliens):
+    #Detect if Alien hits spaceshior alien bomb hits spaceship, and it's game over!
+    if (pygame.sprite.spritecollideany(P1, all_aliens) or 
+        pygame.sprite.spritecollideany(P1, all_alien_bombs)):
           pygame.mixer.Sound('.//Data//gameover.wav').play()
           time.sleep(1)
                     
