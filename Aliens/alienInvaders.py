@@ -48,7 +48,7 @@ ALIEN_SPAWNING = pygame.USEREVENT + 2
 pygame.time.set_timer(ALIEN_SPAWNING, 2000)
 #alien ship shooting
 ALIEN_SHOOTING = pygame.USEREVENT+3
-pygame.time.set_timer(ALIEN_SHOOTING, 500)
+pygame.time.set_timer(ALIEN_SHOOTING, 1000)
  
 #Setting up Fonts
 font = pygame.font.SysFont("Verdana", 60)
@@ -161,7 +161,7 @@ class AlienShip(Alien):
 class AlienBomb(pygame.sprite.Sprite):
      def __init__(self,alienship):
          super().__init__()
-         rawimage = pygame.image.load(".//Data/missile.png")
+         rawimage = pygame.image.load(".//Data/nuclear-bomb.png")
          self.image = pygame.transform.scale(rawimage, (30, 30))
          self.rect = self.image.get_rect()
          self.rect.center = (alienship.rect.centerx,  alienship.rect.centery)
