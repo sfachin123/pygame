@@ -12,7 +12,6 @@ else:
     
 
 soundETDir = ROOTDIR + r"PROGRAMMING\2B-ONLY EstimTowerMod\\"
-#soundDirDefault = ROOTDIR + r"\NEWMP3\StLucifer-20230912T204051Z-003\StLucifer\\"
 soundExt = [".mp3",".ogg", ".wav"]
 
 soundDirDict={
@@ -37,7 +36,7 @@ myWindow = tk.Tk()
 floor_var = tk.StringVar()
 floor_var.set("3") #default
 
-#for looping on calibration files
+#for looping on calibration files 
 counter=0    
 
 class myThread(threading.Thread):
@@ -101,8 +100,11 @@ class musicData:
         return audio_data
     
     def sound_file_paths(self,soundDir):
-        files=os.listdir(soundDir)
-        return [ os.path.join(soundDir,f) for f in files if os.path.splitext(f)[1] in soundExt]
+        try :
+            files=os.listdir(soundDir)
+            return [ os.path.join(soundDir,f) for f in files if os.path.splitext(f)[1] in soundExt]
+        except:
+            return []
     
     
 class soundDevices:
