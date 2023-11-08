@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
 Created on Sun Oct 29 16:01:21 2023
 
@@ -10,7 +10,7 @@ import random, os
 import sys
 from glob import glob
 #mport game1_sound as sound
-import soundManager as sm
+import soundManager_V2 as sm
 from soundManager import getVolume, volumeUp, volumeDown
 #python D:\stefano\bin\tmp\ESTIM\PROGRAMMING\PROGRAMS\RollTheDice\game1.py
 
@@ -62,7 +62,11 @@ font_small = pygame.font.SysFont("Verdana", 20)
 DISPLAYSURF = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT),pygame.RESIZABLE)
 DISPLAYSURF.fill(WHITE)
 
- 
+#check if I: drive is there
+if not os.path.exists(ROOTDIR):
+    print("Missing " + ROOTDIR)
+    sys.exit()
+    
 # caption and icon
 pygame.display.set_caption("Dirty Secrets")
 icon = pygame.image.load(r"I:\bin\tmp\Pics\659 Nina James Large\659_060.jpg")
@@ -96,10 +100,7 @@ class Images():
         img=pygame.image.load(imgpath) 
         return img
 
-#check if I: drive is there
-if not os.path.exists(ROOTDIR):
-    print("Missing " + ROOTDIR)
-    sys.exit()
+
     
 AllImages=[]
 for pictdir in PICTROOTDIRLIST:
@@ -184,6 +185,10 @@ while True:
           igmdiridx = igmdiridx % len(AllImages)
     elif pressed_keys[loc.K_KP_ENTER] and KEYACTIVE:
            soundManager.stop()
+    elif pressed_keys[loc.K_INSERT]:
+            soundManager.fasterPlayback()
+    elif pressed_keys[loc.K_DELETE]:
+             soundManager.slowerPlayback()   
           
     fps = font_small.render("FPS: "+ str(round(FPS,1)) , True, RED)
     vol = font_small.render("Volume: "+ str(round(getVolume(),3)) , True, RED)

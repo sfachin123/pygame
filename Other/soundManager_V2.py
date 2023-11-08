@@ -8,21 +8,28 @@ import os
 import time
 import glob
 import random
-import sounddevice
+import sounddevice as sd
 import threading
-import soundfile
+import soundfile as sf
+import enum 
 
-#copy D:\stefano\Learning\Programming\Python\pygame\Other
-#sound settings
+#for git commit
+#copy D:\stefano\bin\tmp\ESTIM\PROGRAMMING\PROGRAMS\RollTheDice\soundManager.py D:\stefano\Learning\Programming\Python\pygame\Other\
+
+    #sound settings
 ROOTDIR = "I:\\bin\\tmp\\ESTIM\\"
-soundExt = [".mp3",".ogg", ".wav"]
+soundExt = [".mp3", ".wav"]
 
 DATA_TYPE = "int16"
 
 OUTPUT_DICT = {
-    "Speakers" : 20, #3
-    "OculusRift" : 18, #6
+    "Speakers" : 3,
+    "OculusRift" : 6
     }
+
+DEVICE = OUTPUT_DICT["Speakers"]
+
+OUTPUT_DICT_REV = {y:x for x,y in OUTPUT_DICT.items()}
 
 soundDirDict={
     "Floors":
@@ -50,30 +57,49 @@ soundDirDict={
             "OldMp3": ROOTDIR + r"OLDMP3\\",
         } ,   
     }
+        
 
-class streamData:
-    def __init__(self, index):
-        self.outstream = self.create_running_output_stream(index)
+class Status(enum.Enum):
+    NONE = "NONE"
+    PLAYING = "PLAYING"
+
+
+class AudioController:
+    def __init__(self):
+        self._status = Status.NONE
+        self.multiplier=1.0
+
+    def set_file_name(self,filename):
+        self.filename = filename
     
-    def create_running_output_stream(self, index): 
-            output = sounddevice.RawOutputStream(
-                device=index,
-                dtype=DATA_TYPE
-            )
-            return output        
+    def get_file_name(self):
+        return self. filename
+    
+    def set_multiplier(self,multiplier):
+        self.multiplier = multiplier
+    
+    def get_multiplier(self):
+        return self. multiplier
+    
+    def stop(self) -> None:
+        self._status = Status.NONE
+        print("Stopping playback.")
+        sd.stop()
 
-stream1 = streamData(OUTPUT_DICT["Speakers"])
+    def play_file_async(self, filepath: str, loop: bool = False, device: int = 3, multiplier: float = 1.0) -> None:
+        def play_with_callback() -> None:
+            self._play(filepath, loop=loop, device=device, multiplier=multiplier)
+            print("Device = " + OUTPUT_DICT_REV[device]  + ". Playing " + filepath )
+            #callback()
+        thread = threading.Thread(target=play_with_callback)
+        thread.start()
 
-class myThread(threading.Thread):
-    def __init__(self, song):
-        threading.Thread.__init__(self)        
-        self.song = song
-    def run(self):
-        #while True:
-        if not stream1.outstream.stopped:
-            print("Writing to stream in thread")
-            print("Stream alive = " + str(not stream1.outstream.stopped))
-            stream1.outstream.write(self.song)            
+    def _play(self, filepath: str, loop: bool = False, device: int = 3,  multiplier: float = 1.0) -> None:
+        data, fs = sf.read(filepath)
+        self._status = Status.PLAYING
+        sd.play(data, samplerate=int(fs*multiplier), loop=loop, device=device)
+
+audiocontroller = AudioController()
         
 class soundData():
     def __init__(self, channel):
@@ -106,15 +132,22 @@ class soundData():
         return filelist
       
     def playSoundFiles(self, cat="Floors", subcat=None, floor=1): 
-        filename = self.getRandom(cat,subcat,floor)            
-        song, fs = soundfile.read(filename, dtype=DATA_TYPE)
+        filename = self.getRandom(cat,subcat,floor)  
+        audiocontroller.set_file_name(filename)
+        multiplier= audiocontroller.get_multiplier()
+        audiocontroller.play_file_async(filename, loop=True, device=DEVICE, multiplier=multiplier)           
+ 
+    def fasterPlayback(self):
+        filename=audiocontroller.get_file_name()
+        multiplier= audiocontroller.get_multiplier()*1.1 
+        audiocontroller.set_multiplier(multiplier)
+        audiocontroller.play_file_async(filename, loop=True, device=DEVICE, multiplier=multiplier)  
         
-        print("Playing on " + self.channel + ": "  + filename)               
-        if not stream1.outstream.stopped:
-            stream1.outstream.stop()
-        thread = myThread(song)
-        stream1.outstream.start()        
-        thread.start()
+    def slowerPlayback(self):
+        filename=audiocontroller.get_file_name()
+        multiplier= audiocontroller.get_multiplier()*0.9
+        audiocontroller.set_multiplier(multiplier)
+        audiocontroller.play_file_async(filename, loop=True, device=DEVICE, multiplier=multiplier)  
         
     def getRandom(self, cat="Pain", subcat=None, floor=1):
         if not subcat:
@@ -142,6 +175,7 @@ class soundData():
         #filename=r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\AAaudio\xxh045b.wav"
         #to test looping
         #filename=r"I:\bin\tmp\ESTIM\PROGRAMMING\Tease AI 0.54.9\Audio\GNMAudio\Spanking\cane.mp3"
+        #filename=r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\AAaudio\xxh020a.wav"
         return filename
     
     def getnext(self,filelist):
@@ -149,9 +183,7 @@ class soundData():
             yield f
         
     def stop(self):
-        if not stream1.outstream.stopped:
-            print("stopping playback (stream.stop)")
-            stream1.outstream.stop()
+        audiocontroller.stop()
  
 #VOLUMN CONTROL
 def getVolumeObj():
@@ -208,18 +240,7 @@ def testing():
         sd2.playSoundFiles()
         time.sleep(5)
         sd2.stop()
-def testing2():  
-    filename=r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\AAaudio\xxh045b.wav"
-    song, fs = soundfile.read(filename, dtype=DATA_TYPE)
-    if not stream1.outstream.stopped:
-        stream1.outstream.stop()
-    thread = myThread(song)
-    stream1.outstream.start()        
-    thread.start()
-    time.sleep(5)
-    stream1.outstream.stop()
-
-testing3():
+        
     
 if __name__ == "__main__":
     testing()
