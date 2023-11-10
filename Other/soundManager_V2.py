@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+dir
 """
 Created on Wed Nov  1 14:58:40 2023
 
@@ -21,6 +21,7 @@ ROOTDIR = "I:\\bin\\tmp\\ESTIM\\"
 soundExt = [".mp3", ".wav"]
 
 DATA_TYPE = "int16"
+MAX_SPEEDUP_MULT=8.0 
 
 OUTPUT_DICT = {
     "Speakers" : 3,
@@ -99,11 +100,12 @@ class AudioController:
         self._status = Status.PLAYING
         sd.play(data, samplerate=int(fs*multiplier), loop=loop, device=device)
 
-audiocontroller = AudioController()
+#audiocontroller = AudioController()
         
 class soundData():
     def __init__(self, channel):
         self.channel = channel
+        self.audioController = AudioController()
         self.soundFileDict = {}
         self.calibfilelist = None
         for k,subdict in soundDirDict.items():
@@ -131,23 +133,24 @@ class soundData():
         #print("Sound file list from " + soundDir + "contains: \n" + str(len(filelist)) + " files") 
         return filelist
       
-    def playSoundFiles(self, cat="Floors", subcat=None, floor=1): 
-        filename = self.getRandom(cat,subcat,floor)  
-        audiocontroller.set_file_name(filename)
-        multiplier= audiocontroller.get_multiplier()
-        audiocontroller.play_file_async(filename, loop=True, device=DEVICE, multiplier=multiplier)           
+    def playSoundFiles(self, cat="Floors", subcat=None, floor=1, filename=None): 
+        if not filename:
+            filename = self.getRandom(cat,subcat,floor)  
+        self.audioController.set_file_name(filename)
+        self.audioController.set_multiplier(1.0)
+        self.audioController.play_file_async(filename, loop=True, device=DEVICE, multiplier=1.0)           
  
-    def fasterPlayback(self):
-        filename=audiocontroller.get_file_name()
-        multiplier= audiocontroller.get_multiplier()*1.1 
-        audiocontroller.set_multiplier(multiplier)
-        audiocontroller.play_file_async(filename, loop=True, device=DEVICE, multiplier=multiplier)  
+    def fasterPlayback(self,stepup=1.25):
+        filename=self.audioController.get_file_name()
+        multiplier= max(self.audioController.get_multiplier()*stepup, MAX_SPEEDUP_MULT)
+        self.audioController.set_multiplier(multiplier)
+        self.audioController.play_file_async(filename, loop=True, device=DEVICE, multiplier=multiplier)  
         
-    def slowerPlayback(self):
-        filename=audiocontroller.get_file_name()
-        multiplier= audiocontroller.get_multiplier()*0.9
-        audiocontroller.set_multiplier(multiplier)
-        audiocontroller.play_file_async(filename, loop=True, device=DEVICE, multiplier=multiplier)  
+    def slowerPlayback(self,stepdown=0.75):
+        filename=self.audioController.get_file_name()
+        multiplier= self.audioController.get_multiplier()*stepdown
+        self.audioController.set_multiplier(multiplier)
+        self.audioController.play_file_async(filename, loop=True, device=DEVICE, multiplier=multiplier)  
         
     def getRandom(self, cat="Pain", subcat=None, floor=1):
         if not subcat:
@@ -183,7 +186,7 @@ class soundData():
             yield f
         
     def stop(self):
-        audiocontroller.stop()
+        self.audioController.stop()
  
 #VOLUMN CONTROL
 def getVolumeObj():
@@ -205,15 +208,15 @@ def changeVolume(dbinput):
     volume.SetMasterVolumeLevel(currentVolumeDb + float(dbinput), None)
      # NOTE: -6.0 dB = half volume !
 
-def volumeUp():
+def volumeUp(stepup=1.0):
     try:
-        changeVolume(1.0)
+        changeVolume(stepup)
     except:
         pass
 
-def volumeDown():
+def volumeDown(stepdown):
     try:
-        changeVolume(-1.0)
+        changeVolume(-1.0 * stepdown)
     except:
         pass
 
@@ -244,4 +247,3 @@ def testing():
     
 if __name__ == "__main__":
     testing()
-    #testing2()

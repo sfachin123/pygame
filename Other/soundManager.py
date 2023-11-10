@@ -173,15 +173,15 @@ def changeVolume(dbinput):
     volume.SetMasterVolumeLevel(currentVolumeDb + float(dbinput), None)
      # NOTE: -6.0 dB = half volume !
 
-def volumeUp():
+def volumeUp(step=1.0):
     try:
-        changeVolume(1.0)
+        changeVolume(step)
     except:
         pass
 
-def volumeDown():
+def volumeDown(step):
     try:
-        changeVolume(-1.0)
+        changeVolume(-1.0*step)
     except:
         pass
 
@@ -208,6 +208,7 @@ def testing():
         sd2.playSoundFiles()
         time.sleep(5)
         sd2.stop()
+
 def testing2():  
     filename=r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\AAaudio\xxh045b.wav"
     song, fs = soundfile.read(filename, dtype=DATA_TYPE)
@@ -218,8 +219,6 @@ def testing2():
     thread.start()
     time.sleep(5)
     stream1.outstream.stop()
-
-testing3():
     
 if __name__ == "__main__":
     testing()
