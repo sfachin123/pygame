@@ -142,7 +142,7 @@ class soundData():
  
     def fasterPlayback(self,stepup=1.25):
         filename=self.audioController.get_file_name()
-        multiplier= max(self.audioController.get_multiplier()*stepup, MAX_SPEEDUP_MULT)
+        multiplier= min(self.audioController.get_multiplier()*stepup, MAX_SPEEDUP_MULT)
         self.audioController.set_multiplier(multiplier)
         self.audioController.play_file_async(filename, loop=True, device=DEVICE, multiplier=multiplier)  
         
@@ -201,6 +201,10 @@ def getVolumeObj():
     volume = cast(interface, POINTER(IAudioEndpointVolume))
     return volume
 
+def setVolume(volLevel):
+    volume = getVolumeObj()
+    volume.SetMasterVolumeLevel(volLevel, None)
+    
 def changeVolume(dbinput):
     volume = getVolumeObj()
     # Get current volume 
@@ -214,7 +218,7 @@ def volumeUp(stepup=1.0):
     except:
         pass
 
-def volumeDown(stepdown):
+def volumeDown(stepdown=1.0):
     try:
         changeVolume(-1.0 * stepdown)
     except:
