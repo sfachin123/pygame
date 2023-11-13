@@ -19,8 +19,6 @@ from glob import glob
 import soundManager_V2 as sm
 import cv2
 
-#python D:\stefano\bin\tmp\ESTIM\PROGRAMMING\PROGRAMS\RollTheDice\game1.py
-
 #Picture Directories
 pictRootDir1 = "I:\\bin\\tmp\\ESTIM\\PROGRAMMING\\PICTS\\"
 pictRootDir2 = r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\\"
@@ -239,13 +237,15 @@ def exitAndCleanup():
     sys.exit()
  
 class PictureForDisplaying():
-    def __init__(self, bexcludepain, *args, **kwargs):
+    
+    def __init__(self, bexcludepain, imgdirindex, *args, **kwargs):
         #print("bexcludepain inPictureForDisplaying:" + str(bexcludepain))
-        #background = AllImages[IMGDIRIDX].getRnd(filterw="pain",exclude=bexcludepain)
+
         if bexcludepain:
-            background = AllImages[IMGDIRIDX].getRnd(filterw="pain",exclude=bexcludepain)
-        else:
-            background = AllPainImages[IMGDIRIDX].getRnd(filterw="pain",exclude=bexcludepain)
+            background = AllImages[imgdirindex].getRnd(filterw="pain",exclude=bexcludepain)
+        else:            
+  
+            background = AllPainImages[imgdirindex].getRnd(filterw="pain",exclude=bexcludepain)
             
         ow = background.get_width()
         oh = background.get_height()
@@ -260,101 +260,113 @@ class PictureForDisplaying():
         self.background = background
         self.position = position
 
-#start sound for first floor
-soundManager.playSoundFiles(cat="Floors",subcat=SUBCAT,floor=1)
-bexcludepain=True
-
+       
 #MAIN LOOP
-while True:      
-    floor = font_small.render("Floor: " + str(FLOOR) , True, RED)          
+def game_loop():
+    global FLOOR, FPS, IMGDIRIDX, PAIN_VOLUME, KEYACTIVE
+    global PLAY_VIDEO
+    #start sound for first floor
+    soundManager.playSoundFiles(cat="Floors",subcat=SUBCAT,floor=1)
+    bexcludepain=True
     
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            exitAndCleanup()
-        if event.type == PRESS_KEY_OK:
-            KEYACTIVE= True
-        if event.type == GOTO_NEXT_FLOOR:
-            FLOOR +=1
-            bexcludepain = excludepain(FLOOR) 
-            #print("Exclude pain: "+str(bexcludepain))
-            #raise volume for pain and decrease for normal
-            if not bexcludepain:
-                sm.setVolume(PAIN_VOLUME)
-                print("VOLUME = " + str(sm.getVolume()))
-            else:
-                sm.setVolume(AVGVOL)
-                print("VOLUME = " + str(sm.getVolume()))
-                
-            playSoundfile(bexcludepain)            
-        if event.type == NEW_MOVIE_CLIP:
-            randomFrameNumber=random.randint(0, totalFrames-20)
-            # set frame position at random start  
-            video.set(cv2.CAP_PROP_POS_FRAMES,randomFrameNumber)
-    
-    if PLAY_VIDEO:
-        success, video_image = video.read()
-        #print("VIDEO OK:" +str(success))
-        if success:
-            #print("Playing Video")
-            video_surf = pygame.image.frombuffer(
-                 video_image.tobytes(), video_image.shape[1::-1], "BGR")
-        DISPLAYSURF.blit(video_surf, (0, 0))
-    else:  
-        picture =  PictureForDisplaying(bexcludepain)
-        DISPLAYSURF.blit(picture.background, picture.position)
+    while True:      
+        floor = font_small.render("Floor: " + str(FLOOR) , True, RED)          
         
-    pressed_keys = pygame.key.get_pressed()
-    #speed up or slow down displaying of images
-    if pressed_keys[loc.K_LEFT]:
-        FPS -= FPS/2
-        sm.volumeDown()
-    elif pressed_keys[loc.K_RIGHT]:
-        FPS += 1
-        sm.volumeUp()
-    elif pressed_keys[loc.K_UP]:
-        sm.volumeUp()
-    elif pressed_keys[loc.K_DOWN]:
-        sm.volumeDown()
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                exitAndCleanup()
+                     
+            if event.type == PRESS_KEY_OK:
+                KEYACTIVE= True
+            if event.type == GOTO_NEXT_FLOOR:
+                FLOOR +=1
+                bexcludepain = excludepain(FLOOR) 
+                #print("Exclude pain: "+str(bexcludepain))
+                #raise volume for pain and decrease for normal
+                if not bexcludepain:
+                    sm.setVolume(PAIN_VOLUME)
+                    print("VOLUME = " + str(sm.getVolume()))
+                else:
+                    sm.setVolume(AVGVOL)
+                    print("VOLUME = " + str(sm.getVolume()))
+                    
+                playSoundfile(bexcludepain)            
+            if event.type == NEW_MOVIE_CLIP:
+                randomFrameNumber=random.randint(0, totalFrames-20)
+                # set frame position at random start  
+                video.set(cv2.CAP_PROP_POS_FRAMES,randomFrameNumber)
         
-    elif pressed_keys[loc.K_KP_PLUS]:
-          imglen =  len(AllImages) if bexcludepain else len(AllPainImages) 
-          IMGDIRIDX += 1
-          IMGDIRIDX = IMGDIRIDX %imglen
-    elif pressed_keys[loc.K_KP_MINUS]:
-          imglen =  len(AllImages) if bexcludepain else len(AllPainImages) 
-          IMGDIRIDX -= 1
-          IMGDIRIDX = IMGDIRIDX % imglen
-    elif pressed_keys[loc.K_KP_ENTER] and KEYACTIVE:
-           soundManager.stop()
-    elif pressed_keys[loc.K_INSERT]:
-            soundManager.fasterPlayback()
-    elif pressed_keys[loc.K_DELETE]:
-             soundManager.slowerPlayback() 
-    elif pressed_keys[loc.K_KP_0]:
-        #skip to next floor
-          FLOOR += 1 
-          
-    fps = font_small.render("FPS: "+ str(round(FPS,1)) , True, RED)
-    vol = font_small.render("Volume: "+ str(round(sm.getVolume(),3)) , True, RED)
-    curdir =font_small.render("Directory index: "+ str(IMGDIRIDX) , True, RED)
-    mult = round(soundManager.audioController.get_multiplier(),2)
-    dispmult = font_small.render("Multiplier: "+ str(mult) , True, RED)    
-    
-    w, h = pygame.display.get_surface().get_size()
-    DISPLAYSURF.blit(fps, (50,h-50))
-    DISPLAYSURF.blit(vol, (150,h-50))
-    DISPLAYSURF.blit(curdir, (550,h-50))
-    DISPLAYSURF.blit(dispmult, (350,h-50))        
-    
-    
-    if  bexcludepain:
-         DISPLAYSURF.blit(floor, (20,h-SCREEN_HEIGHT+10))  
-    else:
-         pain = font_big.render("PAIN!", True, RED)
-         DISPLAYSURF.blit(pain, (SCREEN_WIDTH/2, h-SCREEN_HEIGHT + 50)) 
+        if PLAY_VIDEO:
+            success, video_image = video.read()
+            #print("VIDEO OK:" +str(success))
+            if success:
+                #print("Playing Video")
+                video_surf = pygame.image.frombuffer(
+                     video_image.tobytes(), video_image.shape[1::-1], "BGR")
+            DISPLAYSURF.blit(video_surf, (0, 0))
+        else:  
+            #make sure IMGDIRIDX is appropriate for normal/pain dir list
+            imglen =  len(AllImages) if bexcludepain else len(AllPainImages)        
+            IMGDIRIDX = IMGDIRIDX %imglen
+            picture =  PictureForDisplaying(bexcludepain, IMGDIRIDX)
+            DISPLAYSURF.blit(picture.background, picture.position)
+            
+        pressed_keys = pygame.key.get_pressed()
+        #speed up or slow down displaying of images
+        if pressed_keys[loc.K_LEFT]:
+            FPS -= FPS/2
+            sm.volumeDown()
+        elif pressed_keys[loc.K_RIGHT]:
+            FPS += 1
+            sm.volumeUp()
+        elif pressed_keys[loc.K_UP]:
+            sm.volumeUp()
+        elif pressed_keys[loc.K_DOWN]:
+            sm.volumeDown()
+            
+        elif pressed_keys[loc.K_KP_PLUS]:
+              imglen =  len(AllImages) if bexcludepain else len(AllPainImages) 
+              IMGDIRIDX += 1
+              IMGDIRIDX = IMGDIRIDX %imglen
+        elif pressed_keys[loc.K_KP_MINUS]:
+              imglen =  len(AllImages) if bexcludepain else len(AllPainImages) 
+              IMGDIRIDX -= 1
+              IMGDIRIDX = IMGDIRIDX % imglen
+        elif pressed_keys[loc.K_KP_ENTER] and KEYACTIVE:
+               soundManager.stop()
+        elif pressed_keys[loc.K_INSERT]:
+                soundManager.fasterPlayback()
+        elif pressed_keys[loc.K_DELETE]:
+                 soundManager.slowerPlayback() 
+        elif pressed_keys[loc.K_KP_0]:
+            #skip to next floor
+              FLOOR += 1 
+              
+        fps = font_small.render("FPS: "+ str(round(FPS,1)) , True, RED)
+        vol = font_small.render("Volume: "+ str(round(sm.getVolume(),3)) , True, RED)
+        curdir =font_small.render("Directory index: "+ str(IMGDIRIDX) , True, RED)
+        mult = round(soundManager.audioController.get_multiplier(),2)
+        dispmult = font_small.render("Multiplier: "+ str(mult) , True, RED)    
         
-    pygame.display.update()
-    if PLAY_VIDEO:
-        FramePerSec.tick(VIDEO_FPS)
-    else:
-        FramePerSec.tick(FPS)
+        w, h = pygame.display.get_surface().get_size()
+        DISPLAYSURF.blit(fps, (50,h-50))
+        DISPLAYSURF.blit(vol, (150,h-50))
+        DISPLAYSURF.blit(curdir, (550,h-50))
+        DISPLAYSURF.blit(dispmult, (350,h-50))        
+            
+        
+        if  bexcludepain:
+             DISPLAYSURF.blit(floor, (20,h-SCREEN_HEIGHT+10))              
+        else:
+             pain = font_big.render("PAIN!", True, RED)
+             DISPLAYSURF.blit(pain, (SCREEN_WIDTH/2, h-SCREEN_HEIGHT + 50)) 
+            
+        pygame.display.update()
+        if PLAY_VIDEO:
+            FramePerSec.tick(VIDEO_FPS)
+        else:
+            FramePerSec.tick(FPS)
+
+if __name__ == "__main__":  
+    game_loop()
