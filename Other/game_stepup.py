@@ -22,9 +22,15 @@ import cv2
 #python D:\stefano\bin\tmp\ESTIM\PROGRAMMING\PROGRAMS\RollTheDice\game1.py
 
 #Picture Directories
-pictRootDir1 = r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\\"
-pictRootDir2 = r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\The-Estim-Tower\\"
-PICTROOTDIRLIST = [pictRootDir1,pictRootDir2]
+pictRootDir1 = "I:\\bin\\tmp\\ESTIM\\PROGRAMMING\\PICTS\\"
+pictRootDir2 = r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\\"
+pictRootDir3 = r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\The-Estim-Tower\\"
+pictRootDir4 = r"I:\bin\tmp\Pics\\"
+pictRootDir5=r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\The Mystical Maze\\"
+pictRootDir6=r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\Hero Corruption v0.85c\\"
+PICTROOTDIRLIST = [pictRootDir1,pictRootDir2, pictRootDir3, pictRootDir4, pictRootDir5, pictRootDir6]
+PAINPICTROOTDIRLIST = [pictRootDir2, pictRootDir3]
+
 SUBCATS = ["Bryci1", "Bryci2", "ETower"]
 PAINSUBCATS = ["PainBryciLow", "PainBryciHigh", "PainETowerHigh"]
 
@@ -47,9 +53,11 @@ SUBCAT = SUBCATS[IDX]
 PAINSUBCAT= PAINSUBCATS[IDX]
 fileMMCN=r"I:\bin\tmp\ESTIM\OLDMP3\Butterfly Effect\Butterfly Effect\01 Butterfly flight.mp3"
 ENDGAME_FLOOR=16
-PLAYBACKSPEED_STEPUP=1.10 #for sound playback
+PLAYBACKSPEED_STEPUP=1.10 #for sound playback: faster/slower
 VOLUME_STEPUP=1.0  # in dB. NOTE: -6.0 dB = half volume !
 ORIG_VOLUME = sm.getVolume()
+PAIN_VOL_STEP = 2
+
 #
 print("ORIGINAL VOLUME = " +str(ORIG_VOLUME))
 
@@ -65,7 +73,7 @@ GOTO_NEXT_FLOOR = pygame.USEREVENT  + 2
 pygame.time.set_timer(GOTO_NEXT_FLOOR, 10000)
 FLOOR=1
 
-PAINPROB=25 #10%
+PAINPROB=75 #10%
 
 #Setting up FPS 
 FPS = 3
@@ -94,16 +102,18 @@ DISPLAYSURF.fill(WHITE)
 ###########    VIDEO SETUP ##############
 #USER-DEFINED EVENTS
 NEW_MOVIE_CLIP = pygame.USEREVENT + 1
-pygame.time.set_timer(NEW_MOVIE_CLIP, 4000)
+pygame.time.set_timer(NEW_MOVIE_CLIP, 100000)
 
 #moviefile = r"I:\bin\tmp\ESTIM\ESTIMHERO\CH JOI Addicted Zombie Goon TS Redux-1.m4v"
 #moviefile =r"I:\bin\tmp\ESTIM\ESTIMHERO\PEP10\PEP10-stim audio.mp4"
 #moviefile=r"I:\bin\tmp\VR\Adriana\adriana.mp4"
-moviefile=r"I:\bin\tmp\ESTIM\ESTIMHERO\CH RLGL JOI Amyl Zombie Redux-1.m4v"
+#moviefile=r"I:\bin\tmp\ESTIM\ESTIMHERO\CH RLGL JOI Amyl Zombie Redux-1.m4v"
+moviefile=r"D:\stefano\bin\tmp\ESTIM\PROGRAMMING\PROGRAMS\AutoDownloads\cumQuickCut.ts"
+
 video = cv2.VideoCapture(moviefile)
 VIDEO_FPS = video.get(cv2.CAP_PROP_FPS)
 # get total number of frames
-totalFrames = video.get(cv2.CAP_PROP_FRAME_COUNT)
+totalFrames = video.get(cv2.CAP_PROP_FRAME_COUNT)  
 
 #########################################
 
@@ -125,6 +135,9 @@ class Images():
         pictDirs = glob(rootdir+"/*/")
         self.imglist=[]
         self.imgfiles=[]
+        self.painimgfiles=[]
+        self.nonpainimgfiles=[]
+        
         if NUMDIRS:
             #pick random NUMDIRS directories from  pictDirs
             selectedPictDirs = []
@@ -154,13 +167,28 @@ class Images():
         img=pygame.image.load(imgpath) 
         return img
     
-    
+    def separatePainImages(self):
+        for f in self.imgfiles:
+            if ("pain" in f) or ("x" in f):
+                self.painimgfiles.append(f)
+            else:
+                self.nonpainimgfiles.append(f)
+            
 AllImages=[]
+AllPainImages=[]
 for pictdir in PICTROOTDIRLIST:
     AllImages.append(Images(pictdir))
+for pictdir in PAINPICTROOTDIRLIST:
+    AllPainImages.append(Images(pictdir))
+    
 #image directory index. Used to loop through different picture directory via key action
 IMGDIRIDX=0 
- 
+
+#set initial volume hlf way in range
+vr=sm.getVolumeRange()
+AVGVOL = (vr[0]+vr[1])/2 
+sm.setVolume(AVGVOL)
+PAIN_VOLUME  = AVGVOL + PAIN_VOL_STEP
 soundManager = sm.soundData(SOUND_OUTPUT)
 
 def playSoundfile(excludepain):
@@ -172,28 +200,26 @@ def playSoundfile(excludepain):
             #FLOOR += 1
         else:        
             print("NOW!")
-            print("FLOOR: " + str(FLOOR))
-            print("ENDGAME_FLOOR: " + str(ENDGAME_FLOOR))
+            #print("FLOOR: " + str(FLOOR))
+            #print("ENDGAME_FLOOR: " + str(ENDGAME_FLOOR))
             if FLOOR==ENDGAME_FLOOR:
-                print("LAST SONG")
+                print("LAST SOUND FILE")
                 soundManager.playSoundFiles(filename=fileMMCN)
                 #FLOOR +=1 #only increase speed and volume after end game is reached                
                 PLAY_VIDEO = True    
             #this can be moved to user event if different timing is desired
             #randomly either increase volume of playback speed
             rnd = random.randint(0, 1)
-            if rnd == 1: 
+            if rnd == 0: 
                 soundManager.fasterPlayback(PLAYBACKSPEED_STEPUP)
-                print(round(soundManager.audioController.get_multiplier(),2))
+                print("MULTIPL = " + str(round(soundManager.audioController.get_multiplier(),2)))
             else:
                 sm.volumeUp(VOLUME_STEPUP)
                 print("VOLUME = " + str(sm.getVolume()))
     else:
-        print("PAIN on FLOOR " + str(FLOOR))       
-        soundManager.playSoundFiles(cat="Pain",subcat=PAINSUBCAT)
-        #if FLOOR <= 13: #stay on same floor
-        #    FLOOR -= 1
-
+        print("PAIN on FLOOR " + str(FLOOR))   
+        soundManager.playSoundFiles(cat="Pain",subcat=PAINSUBCAT)       
+        
 def excludepain(floor):
    if floor == 1:
         return True
@@ -215,7 +241,12 @@ def exitAndCleanup():
 class PictureForDisplaying():
     def __init__(self, bexcludepain, *args, **kwargs):
         #print("bexcludepain inPictureForDisplaying:" + str(bexcludepain))
-        background = AllImages[IMGDIRIDX].getRnd(filterw="pain",exclude=bexcludepain)
+        #background = AllImages[IMGDIRIDX].getRnd(filterw="pain",exclude=bexcludepain)
+        if bexcludepain:
+            background = AllImages[IMGDIRIDX].getRnd(filterw="pain",exclude=bexcludepain)
+        else:
+            background = AllPainImages[IMGDIRIDX].getRnd(filterw="pain",exclude=bexcludepain)
+            
         ow = background.get_width()
         oh = background.get_height()
         w, h = pygame.display.get_surface().get_size()
@@ -246,9 +277,17 @@ while True:
             FLOOR +=1
             bexcludepain = excludepain(FLOOR) 
             #print("Exclude pain: "+str(bexcludepain))
+            #raise volume for pain and decrease for normal
+            if not bexcludepain:
+                sm.setVolume(PAIN_VOLUME)
+                print("VOLUME = " + str(sm.getVolume()))
+            else:
+                sm.setVolume(AVGVOL)
+                print("VOLUME = " + str(sm.getVolume()))
+                
             playSoundfile(bexcludepain)            
         if event.type == NEW_MOVIE_CLIP:
-            randomFrameNumber=random.randint(0, totalFrames)
+            randomFrameNumber=random.randint(0, totalFrames-20)
             # set frame position at random start  
             video.set(cv2.CAP_PROP_POS_FRAMES,randomFrameNumber)
     
@@ -278,14 +317,22 @@ while True:
         sm.volumeDown()
         
     elif pressed_keys[loc.K_KP_PLUS]:
+          imglen =  len(AllImages) if bexcludepain else len(AllPainImages) 
           IMGDIRIDX += 1
-          IMGDIRIDX = IMGDIRIDX % len(AllImages)
+          IMGDIRIDX = IMGDIRIDX %imglen
+    elif pressed_keys[loc.K_KP_MINUS]:
+          imglen =  len(AllImages) if bexcludepain else len(AllPainImages) 
+          IMGDIRIDX -= 1
+          IMGDIRIDX = IMGDIRIDX % imglen
     elif pressed_keys[loc.K_KP_ENTER] and KEYACTIVE:
            soundManager.stop()
     elif pressed_keys[loc.K_INSERT]:
             soundManager.fasterPlayback()
     elif pressed_keys[loc.K_DELETE]:
-             soundManager.slowerPlayback()   
+             soundManager.slowerPlayback() 
+    elif pressed_keys[loc.K_KP_0]:
+        #skip to next floor
+          FLOOR += 1 
           
     fps = font_small.render("FPS: "+ str(round(FPS,1)) , True, RED)
     vol = font_small.render("Volume: "+ str(round(sm.getVolume(),3)) , True, RED)
