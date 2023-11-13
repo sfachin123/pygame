@@ -51,6 +51,7 @@ SUBCAT = SUBCATS[IDX]
 PAINSUBCAT= PAINSUBCATS[IDX]
 fileMMCN=r"I:\bin\tmp\ESTIM\OLDMP3\Butterfly Effect\Butterfly Effect\01 Butterfly flight.mp3"
 ENDGAME_FLOOR=16
+TOP_FLOOR=14
 PLAYBACKSPEED_STEPUP=1.10 #for sound playback: faster/slower
 VOLUME_STEPUP=1.0  # in dB. NOTE: -6.0 dB = half volume !
 ORIG_VOLUME = sm.getVolume()
@@ -268,6 +269,7 @@ def game_loop():
     #start sound for first floor
     soundManager.playSoundFiles(cat="Floors",subcat=SUBCAT,floor=1)
     bexcludepain=True
+    sm.setVolume(AVGVOL)
     
     while True:      
         floor = font_small.render("Floor: " + str(FLOOR) , True, RED)          
@@ -348,12 +350,14 @@ def game_loop():
         curdir =font_small.render("Directory index: "+ str(IMGDIRIDX) , True, RED)
         mult = round(soundManager.audioController.get_multiplier(),2)
         dispmult = font_small.render("Multiplier: "+ str(mult) , True, RED)    
+        painprob = font_small.render("Pain Prob: "+ str(PAINPROB) , True, RED)  
         
         w, h = pygame.display.get_surface().get_size()
         DISPLAYSURF.blit(fps, (50,h-50))
         DISPLAYSURF.blit(vol, (150,h-50))
         DISPLAYSURF.blit(curdir, (550,h-50))
-        DISPLAYSURF.blit(dispmult, (350,h-50))        
+        DISPLAYSURF.blit(dispmult, (350,h-50))  
+        DISPLAYSURF.blit(painprob, (450, h-SCREEN_HEIGHT+10))
             
         
         if  bexcludepain:

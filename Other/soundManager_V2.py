@@ -100,7 +100,6 @@ class AudioController:
         self._status = Status.PLAYING
         sd.play(data, samplerate=int(fs*multiplier), loop=loop, device=device)
 
-#audiocontroller = AudioController()
         
 class soundData():
     def __init__(self, channel):
@@ -201,6 +200,10 @@ def getVolumeObj():
     volume = cast(interface, POINTER(IAudioEndpointVolume))
     return volume
 
+def getVolumeRange():
+    volume = getVolumeObj()
+    return volume.GetVolumeRange()
+
 def setVolume(volLevel):
     volume = getVolumeObj()
     volume.SetMasterVolumeLevel(volLevel, None)
@@ -250,4 +253,5 @@ def testing():
         
     
 if __name__ == "__main__":
-    testing()
+    #testing()
+    pass
