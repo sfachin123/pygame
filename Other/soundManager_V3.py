@@ -2,6 +2,8 @@ dir
 """
 Created on Wed Nov  1 14:58:40 2023
 
+Split sound files upon loading names, based on characteristic
+
 @author: stefa
 """
 import os
@@ -16,7 +18,7 @@ import enum
 #for git commit
 #copy D:\stefano\bin\tmp\ESTIM\PROGRAMMING\PROGRAMS\RollTheDice\soundManager.py D:\stefano\Learning\Programming\Python\pygame\Other\
 
-    #sound settings
+#sound settings
 ROOTDIR = "I:\\bin\\tmp\\ESTIM\\"
 soundExt = [".mp3", ".wav"]
 
@@ -33,31 +35,13 @@ DEVICE = OUTPUT_DICT["Speakers"]
 OUTPUT_DICT_REV = {y:x for x,y in OUTPUT_DICT.items()}
 
 soundDirDict={
-    "Floors":
-        {
+ 
             "Bryci1": ROOTDIR + r"PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\AAaudio\\",
             "Bryci2": ROOTDIR + r"PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\AAaudio.2\\",
             "ETower":  ROOTDIR + r"PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\The-Estim-Tower\AAaudio\\",            
-    },
-    "Pain":
-        {
-            "PainBryciLow": ROOTDIR + r"PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\AAaudio\\",
-            "PainBryciHigh": ROOTDIR + r"PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\AAaudio.2\\",
-            "PainETowerLow": ROOTDIR + r"PROGRAMMING\\GuideMe-v0.4.3-Windows.64-bit\The-Estim-Tower\AAaudio\originalpainfiles\\",
-            "PainETowerHigh": ROOTDIR + r"PROGRAMMING\\GuideMe-v0.4.3-Windows.64-bit\The-Estim-Tower\AAaudio\louderpainfiles\\",   
-            },
-    "Calibration":
-        {   
-            "CalibrateBryci1": ROOTDIR + r"PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\AAaudio\\",
-            "CalibrateBryci2": ROOTDIR + r"PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\AAaudio.2\\",
-            "CalibrateETower":  ROOTDIR + r"PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\The-Estim-Tower\AAaudio\\",
-            },
-    "Other":
-        {        
-            "Lucifer": ROOTDIR + r"NEWMP3\StLucifer-20230912T204051Z-003\StLucifer\\",
-            "OldMp3": ROOTDIR + r"OLDMP3\\",
+            #"Lucifer": ROOTDIR + r"NEWMP3\StLucifer-20230912T204051Z-003\StLucifer\\",
+            #"OldMp3": ROOTDIR + r"OLDMP3\\",
             "Mindfuck": ROOTDIR + r"PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\Mindfuck\Estim Mindfuck Edging Loops - by sub090\\"
-        } ,   
     }
         
 
@@ -108,11 +92,8 @@ class soundData():
         self.audioController = AudioController()
         self.soundFileDict = {}
         self.calibfilelist = None
-        for k,subdict in soundDirDict.items():
-            self.soundFileDict[k]={}
-            startsWith = self.startswith(k)
-            for k2,item  in subdict.items():                                    
-                self.soundFileDict[k][k2] = self.getFileList(item,startsWith)
+        for k,fpath in soundDirDict.items():                                   
+            self.soundFileDict[k] = self.getFileList(fpath)
             
     def startswith(self,k):
         if k == "Pain":

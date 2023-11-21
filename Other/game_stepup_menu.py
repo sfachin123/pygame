@@ -3,6 +3,8 @@
 Created on Mon Oct 30 11:45:24 2023
 
 @author: stefa
+
+REFERENCE: https://github.com/ppizarror/pygame-menu/blob/master/pygame_menu/examples/
 """
 import sys
 import pygame
@@ -48,7 +50,6 @@ class Menu():
         ),
         
         # Create discrete range for FLOOR SELECTION
-        #range_values_discrete = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F'}
         k=range(0,gsu.TOP_FLOOR-1)
         v=range(1,gsu.TOP_FLOOR)
         range_values_discrete = dict(zip(k,v))
@@ -109,7 +110,7 @@ class Menu():
     
     def setUpSoundSubmenu(self):
         self.calibrate_sound = pygame_menu.Menu('Calibrate Sound for Pain', 600, 400, theme=themes.THEME_BLUE)
-        self.calibrate_sound.add.button('Calibrate Pain Sound', self.calibrateSound)
+        self.calibrate_sound.add.button('Calibrate Sound', self.calibrateSound)
         self.calibrate_sound.add.button('Calibrate Pain Sound', self.calibrateSoundPain)        
         self.calibrate_sound.add.button('Higher Volume', self.increaseVolumePain)
         self.calibrate_sound.add.button('Decrease Volume', self.decreaseVolumePain)  

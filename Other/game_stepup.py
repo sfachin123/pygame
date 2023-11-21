@@ -20,16 +20,17 @@ import soundManager_V2 as sm
 import cv2
 
 #Picture Directories
+pictRootDir0 = r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\Mindfuck\Estim Mindfuck Edging Loops - by sub090\\"
 pictRootDir1 = "I:\\bin\\tmp\\ESTIM\\PROGRAMMING\\PICTS\\"
 pictRootDir2 = r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\BrycisEstimExperience\\"
 pictRootDir3 = r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\The-Estim-Tower\\"
 pictRootDir4 = r"I:\bin\tmp\Pics\\"
-pictRootDir5=r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\The Mystical Maze\\"
-pictRootDir6=r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\Hero Corruption v0.85c\\"
-PICTROOTDIRLIST = [pictRootDir1,pictRootDir2, pictRootDir3, pictRootDir4, pictRootDir5, pictRootDir6]
+pictRootDir5 = r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\The Mystical Maze\\"
+pictRootDir6 = r"I:\bin\tmp\ESTIM\PROGRAMMING\GuideMe-v0.4.3-Windows.64-bit\Hero Corruption v0.85c\\"
+PICTROOTDIRLIST = [pictRootDir0, pictRootDir1,pictRootDir2, pictRootDir3, pictRootDir4, pictRootDir5, pictRootDir6]
 PAINPICTROOTDIRLIST = [pictRootDir2, pictRootDir3]
 
-SUBCATS = ["Bryci1", "Bryci2", "ETower"]
+SUBCATS = ["Bryci1", "Bryci2", "ETower", "Mindfuck"]
 PAINSUBCATS = ["PainBryciLow", "PainBryciHigh", "PainETowerHigh"]
 
 #sound settings
@@ -41,7 +42,7 @@ NUMDIRS = None
 RESCALE=True
 pictExt=".jpg"
 
-#Pick SUBCAT
+#PICK SOUND SUBCAT (0,1 or 2, needs to have FLoor subfolders)
 IDX=1
 
 #GLOBALS
@@ -72,7 +73,7 @@ GOTO_NEXT_FLOOR = pygame.USEREVENT  + 2
 pygame.time.set_timer(GOTO_NEXT_FLOOR, 10000)
 FLOOR=1
 
-PAINPROB=75 #10%
+PAINPROB=25 #10%
 
 #Setting up FPS 
 FPS = 3
@@ -101,13 +102,13 @@ DISPLAYSURF.fill(WHITE)
 ###########    VIDEO SETUP ##############
 #USER-DEFINED EVENTS
 NEW_MOVIE_CLIP = pygame.USEREVENT + 1
-pygame.time.set_timer(NEW_MOVIE_CLIP, 100000)
+pygame.time.set_timer(NEW_MOVIE_CLIP, 1000000)
 
 #moviefile = r"I:\bin\tmp\ESTIM\ESTIMHERO\CH JOI Addicted Zombie Goon TS Redux-1.m4v"
 #moviefile =r"I:\bin\tmp\ESTIM\ESTIMHERO\PEP10\PEP10-stim audio.mp4"
 #moviefile=r"I:\bin\tmp\VR\Adriana\adriana.mp4"
 #moviefile=r"I:\bin\tmp\ESTIM\ESTIMHERO\CH RLGL JOI Amyl Zombie Redux-1.m4v"
-moviefile=r"D:\stefano\bin\tmp\ESTIM\PROGRAMMING\PROGRAMS\AutoDownloads\cumQuickCut.ts"
+moviefile=r"D:\stefano\bin\tmp\ESTIM\PROGRAMMING\PROGRAMS\DATA\AutoDownloads\cumQuickCut.ts"
 
 video = cv2.VideoCapture(moviefile)
 VIDEO_FPS = video.get(cv2.CAP_PROP_FPS)
